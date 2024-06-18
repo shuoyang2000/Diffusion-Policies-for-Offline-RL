@@ -5,6 +5,7 @@ from torch.distributions import Normal
 import seaborn as sns
 import matplotlib.pyplot as plt
 import argparse
+from tqdm import tqdm
 
 from toy_experiments.toy_helpers import Data_Sampler
 
@@ -129,7 +130,7 @@ agent = QL_MLE(state_dim=state_dim,
                r_fun=None)
 
 print("start training")
-for i in range(1, num_epochs + 1):
+for i in tqdm(range(1, num_epochs + 1), desc ="QL training"):
 
     agent.train(data_sampler, iterations=iterations, batch_size=batch_size)
 
