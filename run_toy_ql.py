@@ -115,6 +115,49 @@ axs[0].set_title('Add Reward', fontsize=25)
 axs[0].legend(loc='best', fontsize=15, title_fontsize=15)
 #fig.colorbar(c, ax=axs[0])
 
+
+# Plot QL-Diffusion
+from toy_experiments.ql_diffusion import QL_Diffusion
+
+agent = QL_Diffusion(state_dim=state_dim,
+                     action_dim=action_dim,
+                     max_action=max_action,
+                     device=device,
+                     discount=discount,
+                     tau=tau,
+                     eta=eta,
+                     beta_schedule=beta_schedule,
+                     n_timesteps=T,
+                     model_type=model_type,
+                     hidden_dim=hidden_dim,
+                     lr=lr,
+                     r_fun=None,
+                     mode=args.mode)
+
+for i in tqdm(range(1, num_epochs+1), desc ="QL-Diffusion training"):
+
+    b_loss, q_loss = agent.train(data_sampler, iterations=iterations, batch_size=batch_size)
+
+    if i % 100 == 0:
+        print(f'QL-Diffusion Epoch: {i} B_loss {b_loss} Q_loss {q_loss}')
+
+# fig, ax = plt.subplots()
+new_state = torch.zeros((num_eval, 2), device=device)
+new_action = agent.actor.sample(new_state)
+new_action = new_action.detach().cpu().numpy()
+axs[4].scatter(new_action[:, 0], new_action[:, 1], alpha=0.3, color='#d62728')
+axs[4].set_xlim(-axis_lim, axis_lim)
+axs[4].set_ylim(-axis_lim, axis_lim)
+axs[4].set_xlabel('x', fontsize=20)
+axs[4].set_ylabel('y', fontsize=20)
+axs[4].set_title('Diffusion-QL', fontsize=25)
+
+file_name = f'ql_all_T{T}_eta{eta}_r_fun{args.r_fun}_lr{lr}_hd{hidden_dim}_mode_{args.mode}'
+file_name += f'_sd{args.seed}.pdf'
+
+fig.tight_layout()
+fig.savefig(os.path.join(img_dir, file_name))
+
 # Plot QL-MLE
 from toy_experiments.ql_mle import QL_MLE
 
@@ -129,8 +172,7 @@ agent = QL_MLE(state_dim=state_dim,
                lr=lr,
                r_fun=None)
 
-print("start training")
-for i in tqdm(range(1, num_epochs + 1), desc ="QL training"):
+for i in tqdm(range(1, num_epochs + 1), desc ="QL-MLE training"):
 
     agent.train(data_sampler, iterations=iterations, batch_size=batch_size)
 
@@ -160,7 +202,7 @@ agent = QL_CVAE(state_dim=state_dim,
                 lr=lr,
                 r_fun=None)
 
-for i in range(1, num_epochs + 1):
+for i in tqdm(range(1, num_epochs + 1), desc ="QL-CVAE training"):
 
     agent.train(data_sampler, iterations=iterations, batch_size=batch_size)
 
@@ -190,8 +232,7 @@ agent = QL_MMD(state_dim=state_dim,
                lr=lr,
                r_fun=None)
 
-print("train")
-for i in range(1, num_epochs + 1):
+for i in tqdm(range(1, num_epochs + 1), desc ="QL-MMD training"):
 
     agent.train(data_sampler, iterations=iterations, batch_size=batch_size)
 
@@ -207,48 +248,4 @@ axs[3].set_ylim(-axis_lim, axis_lim)
 axs[3].set_xlabel('x', fontsize=20)
 axs[3].set_ylabel('y', fontsize=20)
 axs[3].set_title('BEAR-MMD', fontsize=25)
-
-
-# Plot QL-Diffusion
-from toy_experiments.ql_diffusion import QL_Diffusion
-
-agent = QL_Diffusion(state_dim=state_dim,
-                     action_dim=action_dim,
-                     max_action=max_action,
-                     device=device,
-                     discount=discount,
-                     tau=tau,
-                     eta=eta,
-                     beta_schedule=beta_schedule,
-                     n_timesteps=T,
-                     model_type=model_type,
-                     hidden_dim=hidden_dim,
-                     lr=lr,
-                     r_fun=None,
-                     mode=args.mode)
-
-print("diffusion train")
-for i in range(1, num_epochs+1):
-
-    b_loss, q_loss = agent.train(data_sampler, iterations=iterations, batch_size=batch_size)
-
-    if i % 100 == 0:
-        print(f'QL-Diffusion Epoch: {i} B_loss {b_loss} Q_loss {q_loss}')
-
-# fig, ax = plt.subplots()
-new_state = torch.zeros((num_eval, 2), device=device)
-new_action = agent.actor.sample(new_state)
-new_action = new_action.detach().cpu().numpy()
-axs[4].scatter(new_action[:, 0], new_action[:, 1], alpha=0.3, color='#d62728')
-axs[4].set_xlim(-axis_lim, axis_lim)
-axs[4].set_ylim(-axis_lim, axis_lim)
-axs[4].set_xlabel('x', fontsize=20)
-axs[4].set_ylabel('y', fontsize=20)
-axs[4].set_title('Diffusion-QL', fontsize=25)
-
-file_name = f'ql_all_T{T}_eta{eta}_r_fun{args.r_fun}_lr{lr}_hd{hidden_dim}_mode_{args.mode}'
-file_name += f'_sd{args.seed}.pdf'
-
-fig.tight_layout()
-fig.savefig(os.path.join(img_dir, file_name))
 
