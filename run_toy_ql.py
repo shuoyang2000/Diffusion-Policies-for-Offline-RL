@@ -92,6 +92,7 @@ os.makedirs(img_dir, exist_ok=True)
 
 num_eval = 100
 
+print("plot")
 fig, axs = plt.subplots(1, 5, figsize=(5.5 * 5, 5))
 axis_lim = 1.1
 
@@ -127,6 +128,7 @@ agent = QL_MLE(state_dim=state_dim,
                lr=lr,
                r_fun=None)
 
+print("start training")
 for i in range(1, num_epochs + 1):
 
     agent.train(data_sampler, iterations=iterations, batch_size=batch_size)
@@ -187,6 +189,7 @@ agent = QL_MMD(state_dim=state_dim,
                lr=lr,
                r_fun=None)
 
+print("train")
 for i in range(1, num_epochs + 1):
 
     agent.train(data_sampler, iterations=iterations, batch_size=batch_size)
@@ -223,7 +226,7 @@ agent = QL_Diffusion(state_dim=state_dim,
                      r_fun=None,
                      mode=args.mode)
 
-
+print("diffusion train")
 for i in range(1, num_epochs+1):
 
     b_loss, q_loss = agent.train(data_sampler, iterations=iterations, batch_size=batch_size)
