@@ -158,14 +158,14 @@ class QL_Diffusion(object):
             """ Policy Training """
             bc_loss = self.actor.loss(action, state)
 
-            if self.mode == 'whole_grad':
-                new_action = self.actor(state)
-            elif self.mode == 't_middle':
-                new_action = self.actor.sample_t_middle(state)
-            elif self.mode == 't_last':
-                new_action = self.actor.sample_t_last(state)
-            elif self.mode == 'last_few':
-                new_action = self.actor.sample_last_few(state)
+            # if self.mode == 'whole_grad':
+            #     new_action = self.actor(state)
+            # elif self.mode == 't_middle':
+            #     new_action = self.actor.sample_t_middle(state)
+            # elif self.mode == 't_last':
+            #     new_action = self.actor.sample_t_last(state)
+            # elif self.mode == 'last_few':
+            #     new_action = self.actor.sample_last_few(state)
 
             # if self.r_fun is None:
             #     q1_new_action, q2_new_action = self.critic(state, new_action)
