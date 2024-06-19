@@ -159,7 +159,7 @@ class QL_Diffusion(object):
             bc_loss = self.actor.loss(action, state)
 
             if self.mode == 'whole_grad':
-                print(state.device)
+                print(state.device, state.shape)
                 start_time = time.time()
                 new_action = self.actor(state)
                 print("actor inference time ", time.time() - start_time)

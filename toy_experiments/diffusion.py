@@ -226,6 +226,7 @@ class Diffusion(nn.Module):
         return self.p_losses(x, state, t, weights)
 
     def forward(self, state, *args, **kwargs):
+        print("test")
         return self.sample(state, *args, **kwargs)
 
     def step_frozen(self):
