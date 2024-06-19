@@ -130,3 +130,4 @@ dmypy.json
 .pyre/
 
 /diff_offline_rl_venv
+/toy_imgs
