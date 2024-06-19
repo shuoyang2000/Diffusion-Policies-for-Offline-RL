@@ -147,13 +147,13 @@ class QL_Diffusion(object):
             state, action, reward = replay_buffer.sample(batch_size)
             state, action, reward = state.to(self.device), action.to(self.device), reward.to(self.device)
 
-            # if self.r_fun is None:
-            #     current_q1, current_q2 = self.critic(state, action)
-            #     critic_loss = F.mse_loss(current_q1.to(self.device), reward.to(self.device)) + F.mse_loss(current_q2.to(self.device), reward.to(self.device))
+            if self.r_fun is None:
+                current_q1, current_q2 = self.critic(state, action)
+                critic_loss = F.mse_loss(current_q1.to(self.device), reward.to(self.device)) + F.mse_loss(current_q2.to(self.device), reward.to(self.device))
 
-            #     self.critic_optimizer.zero_grad()
-            #     critic_loss.backward()
-            #     self.critic_optimizer.step()
+                self.critic_optimizer.zero_grad()
+                critic_loss.backward()
+                self.critic_optimizer.step()
 
             """ Policy Training """
             bc_loss = self.actor.loss(action, state)
@@ -167,20 +167,20 @@ class QL_Diffusion(object):
             elif self.mode == 'last_few':
                 new_action = self.actor.sample_last_few(state)
 
-            if self.r_fun is None:
-                q1_new_action, q2_new_action = self.critic(state, new_action)
-                if np.random.uniform() > 0.5:
-                    lmbda = self.eta / q2_new_action.abs().mean().detach()
-                    q_loss = - lmbda * q1_new_action.mean()
-                else:
-                    lmbda = self.eta / q1_new_action.abs().mean().detach()
-                    q_loss = - lmbda * q2_new_action.mean()
-            else:
-                q_new_action = self.r_fun(new_action)
-                lmbda = self.eta / q_new_action.abs().mean().detach()
-                q_loss = - lmbda * q_new_action.mean()
+            # if self.r_fun is None:
+            #     q1_new_action, q2_new_action = self.critic(state, new_action)
+            #     if np.random.uniform() > 0.5:
+            #         lmbda = self.eta / q2_new_action.abs().mean().detach()
+            #         q_loss = - lmbda * q1_new_action.mean()
+            #     else:
+            #         lmbda = self.eta / q1_new_action.abs().mean().detach()
+            #         q_loss = - lmbda * q2_new_action.mean()
+            # else:
+            #     q_new_action = self.r_fun(new_action)
+            #     lmbda = self.eta / q_new_action.abs().mean().detach()
+            #     q_loss = - lmbda * q_new_action.mean()
 
-            actor_loss = bc_loss + q_loss
+            actor_loss = bc_loss #+ q_loss
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             self.actor_optimizer.step()
