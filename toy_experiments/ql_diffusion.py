@@ -147,13 +147,13 @@ class QL_Diffusion(object):
             state, action, reward = replay_buffer.sample(batch_size)
             state, action, reward = state.to(self.device), action.to(self.device), reward.to(self.device)
 
-            if self.r_fun is None:
-                current_q1, current_q2 = self.critic(state, action)
-                critic_loss = F.mse_loss(current_q1.to(self.device), reward.to(self.device)) + F.mse_loss(current_q2.to(self.device), reward.to(self.device))
+            # if self.r_fun is None:
+            #     current_q1, current_q2 = self.critic(state, action)
+            #     critic_loss = F.mse_loss(current_q1.to(self.device), reward.to(self.device)) + F.mse_loss(current_q2.to(self.device), reward.to(self.device))
 
-                self.critic_optimizer.zero_grad()
-                critic_loss.backward()
-                self.critic_optimizer.step()
+            #     self.critic_optimizer.zero_grad()
+            #     critic_loss.backward()
+            #     self.critic_optimizer.step()
 
             """ Policy Training """
             bc_loss = self.actor.loss(action, state)
