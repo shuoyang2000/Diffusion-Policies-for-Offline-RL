@@ -145,6 +145,7 @@ class QL_Diffusion(object):
         for step in range(iterations):
             # Sample replay buffer / batch
             state, action, reward = replay_buffer.sample(batch_size)
+            state, action, reward = state.to(self.device), action.to(self.device), reward.to(self.device)
 
             if self.r_fun is None:
                 current_q1, current_q2 = self.critic(state, action)
@@ -155,7 +156,7 @@ class QL_Diffusion(object):
                 self.critic_optimizer.step()
 
             """ Policy Training """
-            bc_loss = self.actor.loss(action.to(self.device), state.to(self.device))
+            bc_loss = self.actor.loss(action, state)
 
             if self.mode == 'whole_grad':
                 new_action = self.actor(state)
