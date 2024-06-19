@@ -161,7 +161,7 @@ class QL_Diffusion(object):
             if self.mode == 'whole_grad':
                 print(state.device, state.shape)
                 start_time = time.time()
-                new_action = self.actor(state[0:1, :])
+                new_action = self.actor(state)
                 print("actor inference time ", time.time() - start_time)
             elif self.mode == 't_middle':
                 new_action = self.actor.sample_t_middle(state)
