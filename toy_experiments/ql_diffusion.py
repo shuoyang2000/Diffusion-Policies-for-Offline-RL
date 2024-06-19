@@ -109,7 +109,7 @@ class QL_Diffusion(object):
 
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
                                beta_schedule=beta_schedule, n_timesteps=n_timesteps,
-                               ).to(device)
+                               )#.to(device)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
 
         self.step = 0
@@ -159,10 +159,10 @@ class QL_Diffusion(object):
             bc_loss = self.actor.loss(action, state)
 
             if self.mode == 'whole_grad':
-                # print(state.device, state.shape)
-                # start_time = time.time()
+                print(state.device, state.shape)
+                start_time = time.time()
                 new_action = self.actor(state.to('cpu'))
-                # print("actor inference time ", time.time() - start_time)
+                print("actor inference time ", time.time() - start_time)
             elif self.mode == 't_middle':
                 new_action = self.actor.sample_t_middle(state)
             elif self.mode == 't_last':
