@@ -212,3 +212,106 @@ class QL_Diffusion(object):
     def load_model(self, dir):
         self.actor.load_state_dict(torch.load(f'{dir}/actor.pth'))
         self.critic.load_state_dict(torch.load(f'{dir}/critic.pth'))
+
+
+
+class pure_Diffusion(object):
+    def __init__(self,
+                 state_dim,
+                 action_dim,
+                 max_action,
+                 device,
+                 discount,
+                 tau,
+                 max_q_backup=False,
+                 eta=1.0,
+                 model_type='MLP',
+                 beta_schedule='linear',
+                 n_timesteps=100,
+                 ema_decay=0.995,
+                 step_start_ema=1000,
+                 update_ema_every=5,
+                 lr=3e-4,
+                 hidden_dim=32,
+                 mode='whole_grad',
+                 ):
+
+        self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device, hidden_dim=hidden_dim)
+
+        self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
+                               beta_schedule=beta_schedule, n_timesteps=n_timesteps,
+                               ).to(device)
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
+
+        self.step = 0
+        self.step_start_ema = step_start_ema
+        self.ema = EMA(ema_decay)
+        self.ema_model = copy.deepcopy(self.actor)
+        self.update_ema_every = update_ema_every
+
+        self.state_dim = state_dim
+        self.max_action = max_action
+        self.action_dim = action_dim
+        self.discount = discount
+        self.tau = tau
+        self.eta = eta  # q_learning weight
+        self.device = device
+        self.max_q_backup = max_q_backup
+
+        self.mode = mode
+
+    def step_ema(self):
+        if self.step < self.step_start_ema:
+            return
+        self.ema.update_model_average(self.ema_model, self.model)
+
+    def train(self, replay_buffer, iterations, batch_size=100):
+
+        for step in range(iterations):
+            # Sample replay buffer / batch
+            state, action, reward = replay_buffer.sample(batch_size)
+
+            """ Policy Training """
+            bc_loss = self.actor.loss(action, state)
+
+            if self.mode == 'whole_grad':
+                new_action = self.actor(state)
+            elif self.mode == 't_middle':
+                new_action = self.actor.sample_t_middle(state)
+            elif self.mode == 't_last':
+                new_action = self.actor.sample_t_last(state)
+            elif self.mode == 'last_few':
+                new_action = self.actor.sample_last_few(state)
+
+            actor_loss = bc_loss
+            self.actor_optimizer.zero_grad()
+            actor_loss.backward()
+            self.actor_optimizer.step()
+            self.actor.step_frozen()
+
+            if self.step % self.update_ema_every == 0:
+                self.step_ema()
+
+            self.step += 1
+
+        # Logging
+        return bc_loss.item(), None
+
+    def sample_action(self, state):
+        # state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+        # state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)
+        # with torch.no_grad():
+        #     action = self.actor.sample(state_rpt)
+        #     q_value = self.critic_target.q_min(state_rpt, action).flatten()
+        #     idx = torch.multinomial(F.softmax(q_value), 1)
+        # return action[idx].cpu().data.numpy().flatten()
+        with torch.no_grad():
+            state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+            action = self.actor.sample(state)
+        return action.cpu().data.numpy().flatten()
+
+    def save_model(self, dir):
+        torch.save(self.actor.state_dict(), f'{dir}/actor.pth')
+
+    def load_model(self, dir):
+        self.actor.load_state_dict(torch.load(f'{dir}/actor.pth'))

@@ -117,7 +117,7 @@ axs[0].legend(loc='best', fontsize=15, title_fontsize=15)
 
 
 # Plot QL-Diffusion
-from toy_experiments.ql_diffusion import QL_Diffusion
+from toy_experiments.ql_diffusion import QL_Diffusion, pure_Diffusion
 
 agent = QL_Diffusion(state_dim=state_dim,
                      action_dim=action_dim,
@@ -132,6 +132,20 @@ agent = QL_Diffusion(state_dim=state_dim,
                      hidden_dim=hidden_dim,
                      lr=lr,
                      r_fun=None,
+                     mode=args.mode)
+
+agent = pure_Diffusion(state_dim=state_dim,
+                     action_dim=action_dim,
+                     max_action=max_action,
+                     device=device,
+                     discount=discount,
+                     tau=tau,
+                     eta=eta,
+                     beta_schedule=beta_schedule,
+                     n_timesteps=T,
+                     model_type=model_type,
+                     hidden_dim=hidden_dim,
+                     lr=lr,
                      mode=args.mode)
 
 for i in tqdm(range(1, num_epochs+1), desc ="QL-Diffusion training"):
