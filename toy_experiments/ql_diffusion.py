@@ -148,14 +148,14 @@ class QL_Diffusion(object):
 
             if self.r_fun is None:
                 current_q1, current_q2 = self.critic(state, action)
-                critic_loss = F.mse_loss(current_q1, reward) + F.mse_loss(current_q2, reward)
+                critic_loss = F.mse_loss(current_q1.to(self.device), reward.to(self.device)) + F.mse_loss(current_q2.to(self.device), reward.to(self.device))
 
                 self.critic_optimizer.zero_grad()
                 critic_loss.backward()
                 self.critic_optimizer.step()
 
             """ Policy Training """
-            bc_loss = self.actor.loss(action, state)
+            bc_loss = self.actor.loss(action.to(self.device), state.to(self.device))
 
             if self.mode == 'whole_grad':
                 new_action = self.actor(state)
