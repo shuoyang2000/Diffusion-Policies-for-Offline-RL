@@ -1,4 +1,5 @@
 import copy
+import time
 import numpy as np
 import torch
 import torch.nn as nn
@@ -272,16 +273,10 @@ class pure_Diffusion(object):
             state, action, reward = replay_buffer.sample(batch_size)
 
             """ Policy Training """
-            bc_loss = self.actor.loss(action, state)
-
-            if self.mode == 'whole_grad':
-                new_action = self.actor(state)
-            elif self.mode == 't_middle':
-                new_action = self.actor.sample_t_middle(state)
-            elif self.mode == 't_last':
-                new_action = self.actor.sample_t_last(state)
-            elif self.mode == 'last_few':
-                new_action = self.actor.sample_last_few(state)
+            
+            start_time = time.time()
+            bc_loss = self.actor.loss(action.to(self.device), state.to(self.device))
+            print("loss time ", time.time() - start_time)
 
             actor_loss = bc_loss
             self.actor_optimizer.zero_grad()
