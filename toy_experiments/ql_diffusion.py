@@ -274,9 +274,7 @@ class pure_Diffusion(object):
 
             """ Policy Training """
             
-            start_time = time.time()
             bc_loss = self.actor.loss(action.to(self.device), state.to(self.device))
-            print("loss time ", time.time() - start_time)
 
             actor_loss = bc_loss
             self.actor_optimizer.zero_grad()
