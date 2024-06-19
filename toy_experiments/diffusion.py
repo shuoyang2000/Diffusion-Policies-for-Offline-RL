@@ -104,7 +104,7 @@ class Diffusion(nn.Module):
         model_mean, posterior_variance, posterior_log_variance = self.q_posterior(x_start=x_recon, x_t=x, t=t)
         return model_mean, posterior_variance, posterior_log_variance
 
-    # @torch.no_grad()
+    @torch.no_grad()
     def p_sample(self, x, t, s, grad=True):
         b, *_, device = *x.shape, x.device
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, t=t, s=s, grad=grad)
@@ -113,7 +113,7 @@ class Diffusion(nn.Module):
         nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x.shape) - 1)))
         return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
 
-    # @torch.no_grad()
+    @torch.no_grad()
     def p_sample_loop(self, state, shape, verbose=False, return_diffusion=False):
         device = self.betas.device
 
@@ -138,7 +138,7 @@ class Diffusion(nn.Module):
         else:
             return x
 
-    # @torch.no_grad()
+    @torch.no_grad()
     def sample(self, state, *args, **kwargs):
         batch_size = state.shape[0]
         shape = (batch_size, self.action_dim)
@@ -226,7 +226,6 @@ class Diffusion(nn.Module):
         return self.p_losses(x, state, t, weights)
 
     def forward(self, state, *args, **kwargs):
-        print("test")
         return self.sample(state, *args, **kwargs)
 
     def step_frozen(self):
