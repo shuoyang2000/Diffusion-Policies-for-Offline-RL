@@ -159,10 +159,10 @@ class QL_Diffusion(object):
             bc_loss = self.actor.loss(action, state)
 
             if self.mode == 'whole_grad':
-                print(state.device, state.shape)
+                # print(state.device, state.shape)
                 start_time = time.time()
                 new_action = self.actor(state)
-                print("actor inference time ", time.time() - start_time)
+                # print("actor inference time ", time.time() - start_time)
             elif self.mode == 't_middle':
                 new_action = self.actor.sample_t_middle(state)
             elif self.mode == 't_last':
@@ -170,7 +170,7 @@ class QL_Diffusion(object):
             elif self.mode == 'last_few':
                 new_action = self.actor.sample_last_few(state)
 
-            start_time = time.time()
+            # start_time = time.time()
             if self.r_fun is None:
                 q1_new_action, q2_new_action = self.critic(state, new_action)
                 if np.random.uniform() > 0.5:
@@ -183,7 +183,7 @@ class QL_Diffusion(object):
                 q_new_action = self.r_fun(new_action)
                 lmbda = self.eta / q_new_action.abs().mean().detach()
                 q_loss = - lmbda * q_new_action.mean()
-            print("q loss time ", time.time() - start_time)
+            # print("q loss time ", time.time() - start_time)
 
             actor_loss = bc_loss + q_loss
             self.actor_optimizer.zero_grad()
