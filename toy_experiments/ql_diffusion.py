@@ -109,7 +109,7 @@ class QL_Diffusion(object):
 
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
                                beta_schedule=beta_schedule, n_timesteps=n_timesteps,
-                               )#.to(device)
+                               ).to(device)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
 
         self.step = 0
@@ -161,7 +161,7 @@ class QL_Diffusion(object):
             if self.mode == 'whole_grad':
                 print(state.device, state.shape)
                 start_time = time.time()
-                new_action = self.actor(state.to('cpu'))
+                new_action = self.actor(state[0:1, :])
                 print("actor inference time ", time.time() - start_time)
             elif self.mode == 't_middle':
                 new_action = self.actor.sample_t_middle(state)
@@ -170,22 +170,22 @@ class QL_Diffusion(object):
             elif self.mode == 'last_few':
                 new_action = self.actor.sample_last_few(state)
 
-            # start_time = time.time()
-            if self.r_fun is None:
-                q1_new_action, q2_new_action = self.critic(state, new_action)
-                if np.random.uniform() > 0.5:
-                    lmbda = self.eta / q2_new_action.abs().mean().detach()
-                    q_loss = - lmbda * q1_new_action.mean()
-                else:
-                    lmbda = self.eta / q1_new_action.abs().mean().detach()
-                    q_loss = - lmbda * q2_new_action.mean()
-            else:
-                q_new_action = self.r_fun(new_action)
-                lmbda = self.eta / q_new_action.abs().mean().detach()
-                q_loss = - lmbda * q_new_action.mean()
-            # print("q loss time ", time.time() - start_time)
+            # # start_time = time.time()
+            # if self.r_fun is None:
+            #     q1_new_action, q2_new_action = self.critic(state, new_action)
+            #     if np.random.uniform() > 0.5:
+            #         lmbda = self.eta / q2_new_action.abs().mean().detach()
+            #         q_loss = - lmbda * q1_new_action.mean()
+            #     else:
+            #         lmbda = self.eta / q1_new_action.abs().mean().detach()
+            #         q_loss = - lmbda * q2_new_action.mean()
+            # else:
+            #     q_new_action = self.r_fun(new_action)
+            #     lmbda = self.eta / q_new_action.abs().mean().detach()
+            #     q_loss = - lmbda * q_new_action.mean()
+            # # print("q loss time ", time.time() - start_time)
 
-            actor_loss = bc_loss + q_loss
+            actor_loss = bc_loss #+ q_loss
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             self.actor_optimizer.step()
@@ -197,7 +197,7 @@ class QL_Diffusion(object):
             self.step += 1
 
         # Logging
-        return bc_loss.item(), q_loss
+        return bc_loss.item(), None
 
     def sample_action(self, state):
         # state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
