@@ -192,7 +192,7 @@ class QL_Diffusion(object):
             self.step += 1
 
         # Logging
-        return bc_loss.item(), q_loss.item()
+        return bc_loss.item(), None
 
     def sample_action(self, state):
         # state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
